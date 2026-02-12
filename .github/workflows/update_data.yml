@@ -1,0 +1,35 @@
+name: Update Unemployment Data
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Used UTC time, runs at 00:00 UTC daily (08:00 Taipei)
+  workflow_dispatch:      # Allows manual trigger
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Grant write capability to push changes
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Run fetch script
+      run: python fetch_unemployment.py
+
+    - name: Commit and push changes
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: "Auto-update unemployment data"
+        file_pattern: "seeds/*.csv"
